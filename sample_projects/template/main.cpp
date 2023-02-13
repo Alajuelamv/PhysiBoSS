@@ -114,8 +114,12 @@ int main( int argc, char* argv[] )
 	/* Microenvironment setup */ 
 	
 	setup_microenvironment(); // modify this in the custom code 
+
+
 	
 	/* PhysiCell setup */ 
+
+	set_substrate_density();
  	
 	// set mechanics voxel size, and match the data structure to BioFVM
 	double mechanics_voxel_size = 30; 
@@ -126,6 +130,8 @@ int main( int argc, char* argv[] )
 	create_cell_types();
 	
 	setup_tissue();
+
+	// set_substrate_density();
 
 	/* Users typically stop modifying here. END USERMODS */ 
 	
@@ -149,13 +155,19 @@ int main( int argc, char* argv[] )
 
 	// for simplicity, set a pathology coloring function 
 	
-	std::vector<std::string> (*cell_coloring_function)(Cell*) = my_coloring_function; 
+	std::vector<std::string> (*cell_coloring_function)(Cell*) = regular_colors;
 	
-	sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() ); 
-	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	// sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() ); 
+	// SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
 	
 	sprintf( filename , "%s/legend.svg" , PhysiCell_settings.folder.c_str() ); 
-	create_plot_legend( filename , cell_coloring_function ); 
+	create_plot_legend( filename , cell_coloring_function); 	
+
+	std::string substrate = PhysiCell::parameters.strings("substrate_to_monitor");	
+
+	sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() ); 
+	SVG_plot_ecm( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function, substrate );
+	
 	
 	display_citations(); 
 	
@@ -205,7 +217,8 @@ int main( int argc, char* argv[] )
 				if( PhysiCell_settings.enable_SVG_saves == true )
 				{	
 					sprintf( filename , "%s/snapshot%08u.svg" , PhysiCell_settings.folder.c_str() , PhysiCell_globals.SVG_output_index ); 
-					SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+					SVG_plot_ecm( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function, substrate );
+	
 					
 					PhysiCell_globals.SVG_output_index++; 
 					PhysiCell_globals.next_SVG_save_time  += PhysiCell_settings.SVG_save_interval;
@@ -242,7 +255,8 @@ int main( int argc, char* argv[] )
 	save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
 	
 	sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() ); 
-	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	SVG_plot_ecm( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function, substrate );
+	
 	
 	// timer 
 	
